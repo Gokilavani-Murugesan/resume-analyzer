@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ResumeIQ — Smart Resume Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────────── */
+:root {
+  --bg:#0F1117; --bg2:#161B26; --bg3:#1C2230;
+  --surf:#242B3D; --surf2:#2D3650;
+  --bdr:rgba(255,255,255,.08); --bdr2:rgba(255,255,255,.15);
+  --tx:#E8EAF0; --tx2:#9AA0B4; --tx3:#505870;
+  --blue:#4F9CF9; --blue2:#3D7ED6;
+  --teal:#34D4B4; --amber:#F6B84B;
+  --green:#52C982; --red:#EF5350; --rose:#F06292;
+  --fd:'Syne',sans-serif; --fb:'DM Sans',sans-serif; --fm:'JetBrains Mono',monospace;
+  --r:12px; --rl:18px; --rxl:24px;
+  --sh:0 4px 24px rgba(0,0,0,.35); --shl:0 12px 48px rgba(0,0,0,.45);
+  --glow:0 0 28px rgba(79,156,249,.2);
+  --t:.2s cubic-bezier(.4,0,.2,1);
+}
+[data-theme=light]{
+  --bg:#F4F6FB; --bg2:#ECEEF5; --bg3:#E3E6F0;
+  --surf:#FFF; --surf2:#F0F2FA;
+  --bdr:rgba(0,0,0,.08); --bdr2:rgba(0,0,0,.15);
+  --tx:#1A1F30; --tx2:#4A5068; --tx3:#9098B0;
+  --sh:0 4px 24px rgba(0,0,0,.07); --shl:0 12px 48px rgba(0,0,0,.1);
+}
+/* ── RESET ──────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg);color:var(--tx);line-height:1.6;overflow-x:hidden;transition:background .3s,color .3s;min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--surf2);border-radius:3px}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;font-family:var(--fb);border:none;background:none}
+input,textarea,select{font-family:var(--fb);outline:none}
+img{max-width:100%}
+/* ── NAVBAR ─────────────────────────────────────────── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:900;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 52px;background:rgba(15,17,23,.88);backdrop-filter:blur(18px);border-bottom:1px solid var(--bdr);transition:background .3s}
+[data-theme=light] .nav{background:rgba(244,246,251,.9)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:var(--fd);font-size:1.1rem;font-weight:700;cursor:pointer;user-select:none}
+.nav-logo-ico{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--teal));display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.nav-logo span{color:var(--blue)}
+.nav-links{display:flex;gap:2px}
+.nl{padding:6px 14px;border-radius:10px;font-size:.82rem;font-weight:500;color:var(--tx2);transition:all var(--t)}
+.nl:hover,.nl.on{color:var(--tx);background:var(--surf)}
+.nl.on{color:var(--blue)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.theme-btn{width:34px;height:34px;border-radius:10px;border:1px solid var(--bdr2);background:var(--surf);color:var(--tx2);display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:all var(--t)}
+.theme-btn:hover{color:var(--blue);border-color:var(--blue)}
+.ham{display:none;flex-direction:column;gap:5px;padding:6px}
+.ham span{display:block;width:22px;height:2px;background:var(--tx);border-radius:2px;transition:all .3s}
+/* ── MOBILE NAV ──────────────────────────────────────── */
+.mnav{display:none;position:fixed;inset:0;z-index:800;background:var(--bg);padding:80px 24px 24px;flex-direction:column;gap:4px}
+.mnav.open{display:flex}
+.mnl{padding:14px 16px;border-radius:12px;font-size:.95rem;font-weight:500;color:var(--tx2);text-align:left;transition:all var(--t);width:100%}
+.mnl:hover{background:var(--surf);color:var(--tx)}
+/* ── PAGE SYSTEM ─────────────────────────────────────── */
+.pg{display:none;min-height:100vh;padding-top:62px}
+.pg.on{display:block}
+.wrap{max-width:1160px;margin:0 auto;padding:0 52px}
+/* ── REVEAL ──────────────────────────────────────────── */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.rv.in{opacity:1;transform:none}
+/* ── BUTTONS ─────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;border-radius:40px;font-size:.875rem;font-weight:600;letter-spacing:.02em;border:none;cursor:pointer;transition:all var(--t)}
+.btn-p{background:var(--blue);color:#fff}.btn-p:hover{background:var(--blue2);transform:translateY(-2px);box-shadow:var(--glow)}
+.btn-s{background:var(--surf);color:var(--tx);border:1px solid var(--bdr2)}.btn-s:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-2px)}
+.btn-t{background:var(--teal);color:#0a0e17}.btn-t:hover{opacity:.88;transform:translateY(-2px)}
+.btn-d{background:rgba(239,83,80,.1);color:var(--red);border:1px solid rgba(239,83,80,.2)}.btn-d:hover{background:rgba(239,83,80,.18)}
+.btn-lg{padding:13px 30px;font-size:.95rem}
+.btn-sm{padding:7px 16px;font-size:.78rem}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+/* ── CARDS ───────────────────────────────────────────── */
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:24px;transition:all var(--t)}
+.card:hover{border-color:var(--bdr2);box-shadow:var(--sh)}
+/* ── BADGES ──────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:40px;font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.bb{background:rgba(79,156,249,.12);color:var(--blue);border:1px solid rgba(79,156,249,.22)}
+.bt{background:rgba(52,212,180,.12);color:var(--teal);border:1px solid rgba(52,212,180,.22)}
+.ba{background:rgba(246,184,75,.12);color:var(--amber);border:1px solid rgba(246,184,75,.22)}
+.bg{background:rgba(82,201,130,.12);color:var(--green);border:1px solid rgba(82,201,130,.22)}
+.br{background:rgba(239,83,80,.12);color:var(--red);border:1px solid rgba(239,83,80,.22)}
+.bro{background:rgba(240,98,146,.12);color:var(--rose);border:1px solid rgba(240,98,146,.22)}
+/* ── SECTION LABEL ───────────────────────────────────── */
+.slbl{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--blue);margin-bottom:10px}
+.slbl::before{content:'//';opacity:.45}
+.stitle{font-family:var(--fd);font-size:clamp(1.7rem,3vw,2.5rem);font-weight:700;line-height:1.12;letter-spacing:-.02em}
+.stitle em{font-style:italic;color:var(--teal);font-weight:400}
+/* ── PROGRESS BAR ────────────────────────────────────── */
+.pb{height:5px;background:var(--bg3);border-radius:5px;overflow:hidden}
+.pf{height:100%;border-radius:5px;transition:width 1.2s cubic-bezier(.4,0,.2,1);width:0}
+/* ── FORMS ───────────────────────────────────────────── */
+.fg{margin-bottom:16px}
+.fl{display:block;font-size:.74rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--tx2);margin-bottom:6px}
+.fi,.fta,.fsel{width:100%;padding:11px 14px;background:var(--bg3);border:1.5px solid var(--bdr2);border-radius:var(--r);color:var(--tx);font-size:.875rem;transition:border-color var(--t)}
+.fi:focus,.fta:focus,.fsel:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,156,249,.1)}
+.fi.err{border-color:var(--red)}
+.ferr{font-size:.72rem;color:var(--red);margin-top:4px;min-height:16px}
+.fhint{font-size:.72rem;color:var(--tx3);margin-top:4px}
+.fta{resize:vertical;min-height:110px}
+.fsel{appearance:none;cursor:pointer}
+/* ── TOAST ───────────────────────────────────────────── */
+#toasts{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 18px;border-radius:var(--r);background:var(--surf);border:1px solid var(--bdr2);font-size:.83rem;color:var(--tx);box-shadow:var(--shl);display:flex;align-items:center;gap:9px;max-width:300px;animation:tIn .3s ease}
+@keyframes tIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+/* ── MODAL ───────────────────────────────────────────── */
+.mbg{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.mbg.open{opacity:1;pointer-events:all}
+.mdl{background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rxl);padding:36px;width:90%;max-width:480px;box-shadow:var(--shl);transform:translateY(20px);transition:transform .3s}
+.mbg.open .mdl{transform:none}
+.mdl h2{font-family:var(--fd);font-size:1.25rem;font-weight:700;margin-bottom:7px}
+.mdl>p{font-size:.86rem;color:var(--tx2);margin-bottom:20px;line-height:1.7}
+/* ── SPINNER ─────────────────────────────────────────── */
+.spin{width:18px;height:18px;border:2px solid var(--bdr2);border-top-color:var(--blue);border-radius:50%;animation:rot .7s linear infinite;display:inline-block;flex-shrink:0}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ════════════════════════════════════════════════════
+   HOME
+════════════════════════════════════════════════════ */
+.hero{min-height:calc(100vh - 62px);display:flex;flex-direction:column;justify-content:center;padding:80px 52px 60px;position:relative;overflow:hidden}
+.hbg{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 55% 55% at 72% 38%,rgba(79,156,249,.07) 0%,transparent 65%),radial-gradient(ellipse 40% 40% at 22% 68%,rgba(52,212,180,.05) 0%,transparent 60%)}
+.hgrid{position:absolute;inset:0;pointer-events:none;opacity:.025;background-image:linear-gradient(var(--tx) 1px,transparent 1px),linear-gradient(90deg,var(--tx) 1px,transparent 1px);background-size:72px 72px}
+.hero-inner{position:relative;max-width:1160px;margin:0 auto;width:100%}
+.htag{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm);font-size:.7rem;color:var(--teal);background:rgba(52,212,180,.08);border:1px solid rgba(52,212,180,.2);padding:5px 13px;border-radius:40px;margin-bottom:24px;animation:fup .5s both .1s}
+.htdot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.htitle{font-family:var(--fd);font-size:clamp(2.8rem,6vw,5rem);font-weight:800;line-height:1.06;letter-spacing:-.03em;max-width:700px;animation:fup .5s both .2s}
+.gtxt{background:linear-gradient(130deg,var(--blue) 0%,var(--teal) 60%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hsub{font-size:1rem;color:var(--tx2);max-width:500px;margin-top:18px;line-height:1.75;font-weight:300;animation:fup .5s both .3s}
+.hbtns{display:flex;gap:12px;flex-wrap:wrap;margin-top:36px;animation:fup .5s both .4s}
+.hstats{display:flex;gap:48px;margin-top:60px;padding-top:36px;border-top:1px solid var(--bdr);animation:fup .5s both .5s;flex-wrap:wrap}
+.hs-n{font-family:var(--fd);font-size:2rem;font-weight:700;background:linear-gradient(130deg,var(--blue),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hs-l{font-size:.74rem;color:var(--tx3);margin-top:2px}
+@keyframes fup{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+
+.feat-sec{padding:90px 52px;background:var(--bg2)}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px}
+.fc{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:26px;transition:all var(--t);position:relative;overflow:hidden}
+.fc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity var(--t)}
+.fc:hover{transform:translateY(-4px);box-shadow:var(--shl);border-color:var(--bdr2)}.fc:hover::before{opacity:1}
+.fc1::before{background:linear-gradient(90deg,var(--blue),transparent)}
+.fc2::before{background:linear-gradient(90deg,var(--teal),transparent)}
+.fc3::before{background:linear-gradient(90deg,var(--amber),transparent)}
+.fc4::before{background:linear-gradient(90deg,var(--rose),transparent)}
+.fc5::before{background:linear-gradient(90deg,var(--green),transparent)}
+.fc6::before{background:linear-gradient(90deg,#A78BFA,transparent)}
+.fci{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;margin-bottom:16px}
+.fci1{background:rgba(79,156,249,.12)}.fci2{background:rgba(52,212,180,.12)}.fci3{background:rgba(246,184,75,.12)}
+.fci4{background:rgba(240,98,146,.12)}.fci5{background:rgba(82,201,130,.12)}.fci6{background:rgba(167,139,250,.12)}
+.fc-t{font-family:var(--fd);font-size:.98rem;font-weight:600;margin-bottom:7px}
+.fc-d{font-size:.82rem;color:var(--tx2);line-height:1.7}
+
+.hiw{padding:90px 52px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:56px;position:relative}
+.steps::before{content:'';position:absolute;top:30px;left:calc(16.66% + 20px);right:calc(16.66% + 20px);height:1px;background:linear-gradient(90deg,var(--blue),var(--teal));opacity:.3}
+.step{text-align:center;padding:0 20px}
+.step-n{width:60px;height:60px;border-radius:50%;background:var(--bg2);border:2px solid var(--bdr2);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:1.2rem;font-weight:700;color:var(--blue);margin:0 auto 18px;position:relative;z-index:1}
+.step:nth-child(2) .step-n{border-color:var(--teal);color:var(--teal)}
+.step:nth-child(3) .step-n{border-color:var(--green);color:var(--green)}
+.step-t{font-family:var(--fd);font-size:.98rem;font-weight:600;margin-bottom:7px}
+.step-d{font-size:.81rem;color:var(--tx2);line-height:1.7}
+
+.cta-sec{padding:70px 52px}
+.cta-box{max-width:720px;margin:0 auto;text-align:center;background:linear-gradient(135deg,rgba(79,156,249,.08),rgba(52,212,180,.06));border:1px solid rgba(79,156,249,.2);border-radius:var(--rxl);padding:52px 36px}
+.cta-box h2{font-family:var(--fd);font-size:1.9rem;font-weight:700;margin-bottom:12px}
+.cta-box p{font-size:.92rem;color:var(--tx2);margin-bottom:28px}
+
+/* ════════════════════════════════════════════════════
+   UPLOAD
+════════════════════════════════════════════════════ */
+.upload-layout{display:grid;grid-template-columns:1fr 360px;gap:26px;padding:36px 52px 60px;align-items:start}
+.dz{border:2px dashed var(--bdr2);border-radius:var(--rxl);background:var(--surf);padding:56px 36px;text-align:center;transition:all var(--t);cursor:pointer}
+.dz:hover,.dz.over{border-color:var(--blue);background:rgba(79,156,249,.04);box-shadow:0 0 0 4px rgba(79,156,249,.07)}
+.dz-ico{font-size:3rem;margin-bottom:14px;opacity:.7}
+.dz-t{font-family:var(--fd);font-size:1.05rem;font-weight:600;margin-bottom:6px}
+.dz-s{font-size:.82rem;color:var(--tx2)}
+.dz-or{display:flex;align-items:center;gap:10px;font-size:.72rem;color:var(--tx3);margin:18px 0}
+.dz-or::before,.dz-or::after{content:'';flex:1;height:1px;background:var(--bdr2)}
+.dz-fmts{display:flex;justify-content:center;gap:7px;margin-top:14px}
+.fmt{font-family:var(--fm);font-size:.66rem;padding:3px 9px;border-radius:4px;background:var(--bg3);color:var(--tx3);border:1px solid var(--bdr)}
+.fp{display:none;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:13px;margin-top:14px}
+.fp.show{display:flex}
+.fp-n{font-size:.86rem;font-weight:500}.fp-s{font-size:.72rem;color:var(--tx3)}
+.fp-rm{color:var(--tx3);transition:color var(--t)}.fp-rm:hover{color:var(--red)}
+.ana-btn{width:100%;padding:13px;border-radius:14px;background:linear-gradient(130deg,var(--blue),var(--teal));color:#fff;font-family:var(--fd);font-size:.96rem;font-weight:700;border:none;transition:all var(--t);display:flex;align-items:center;justify-content:center;gap:9px;margin-top:20px;cursor:pointer}
+.ana-btn:hover:not(:disabled){opacity:.9;transform:translateY(-2px);box-shadow:var(--glow)}
+.ana-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.sticky{position:sticky;top:76px}
+
+/* ════════════════════════════════════════════════════
+   ANALYZING OVERLAY
+════════════════════════════════════════════════════ */
+.aov{display:none;position:fixed;inset:0;z-index:500;background:rgba(10,12,18,.94);backdrop-filter:blur(14px);flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center}
+.aov.show{display:flex}
+.aov-spin{width:58px;height:58px;border:3px solid var(--bdr2);border-top-color:var(--blue);border-right-color:var(--teal);border-radius:50%;animation:rot .8s linear infinite}
+.aov-t{font-family:var(--fd);font-size:1.2rem;font-weight:600}
+.aov-s{font-size:.83rem;color:var(--tx2)}
+.aov-steps{display:flex;flex-direction:column;gap:7px;margin-top:6px;text-align:left}
+.astep{font-family:var(--fm);font-size:.73rem;color:var(--tx3);display:flex;align-items:center;gap:8px}
+.astep.done{color:var(--green)}.astep.act{color:var(--blue)}
+
+/* ════════════════════════════════════════════════════
+   ATS SCORE PAGE
+════════════════════════════════════════════════════ */
+.ats-layout{display:grid;grid-template-columns:310px 1fr;gap:22px;padding:22px 52px 60px;align-items:start}
+.ats-side{position:sticky;top:76px;display:flex;flex-direction:column;gap:16px}
+.gauge-card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:28px 20px;text-align:center}
+.gw{position:relative;width:168px;height:168px;margin:0 auto 16px}
+.gsvg{width:100%;height:100%;transform:rotate(-90deg)}
+.gbg{fill:none;stroke:var(--bg3);stroke-width:12}
+.gfill{fill:none;stroke-width:12;stroke-linecap:round;stroke-dasharray:502;stroke-dashoffset:502;transition:stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1)}
+.gcenter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.g-sc{font-family:var(--fd);font-size:2.6rem;font-weight:800;line-height:1}
+.g-lb{font-family:var(--fm);font-size:.62rem;color:var(--tx3);letter-spacing:.1em;margin-top:3px}
+.sg{display:inline-flex;align-items:center;font-family:var(--fd);font-size:.95rem;font-weight:700;padding:5px 16px;border-radius:40px;margin-top:4px}
+.sm{font-size:.74rem;color:var(--tx3);margin-top:6px}
+.sbars{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.sb-item{display:flex;flex-direction:column;gap:5px}
+.sb-top{display:flex;justify-content:space-between}
+.sb-n{font-size:.79rem;font-weight:500}.sb-p{font-family:var(--fm);font-size:.74rem;color:var(--tx2)}
+.ats-main{display:flex;flex-direction:column;gap:16px}
+.kcard{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:24px}
+.kcard h3{font-family:var(--fd);font-size:1rem;font-weight:600;margin-bottom:16px}
+.ksub{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);font-family:var(--fm);margin-bottom:8px}
+.ktags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.kf{padding:3px 11px;border-radius:40px;font-size:.75rem;font-weight:500;background:rgba(82,201,130,.1);color:var(--green);border:1px solid rgba(82,201,130,.22)}
+.km{padding:3px 11px;border-radius:40px;font-size:.75rem;font-weight:500;background:rgba(239,83,80,.1);color:var(--red);border:1px solid rgba(239,83,80,.22)}
+.bdcard{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:24px}
+.bdcard h3{font-family:var(--fd);font-size:1rem;font-weight:600;margin-bottom:16px}
+.bdr-row{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid var(--bdr)}
+.bdr-row:last-child{border-bottom:none}
+.bdr-ico{font-size:1.1rem;width:32px;text-align:center;flex-shrink:0}
+.bdr-inf{flex:1}.bdr-n{font-size:.84rem;font-weight:500;margin-bottom:2px}
+.bdr-note{font-size:.72rem;color:var(--tx3)}
+.bdr-sc{font-family:var(--fm);font-size:.84rem;font-weight:600;min-width:36px;text-align:right}
+.bdr-bar{width:72px;flex-shrink:0}
+
+/* ════════════════════════════════════════════════════
+   TIPS PAGE
+════════════════════════════════════════════════════ */
+.tips-layout{display:grid;grid-template-columns:196px 1fr;gap:22px;padding:26px 52px 60px;align-items:start}
+.tnav{position:sticky;top:76px;background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:10px}
+.tni{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:10px;font-size:.81rem;font-weight:500;color:var(--tx2);cursor:pointer;transition:all var(--t);width:100%;text-align:left}
+.tni:hover{color:var(--tx);background:var(--bg3)}.tni.on{color:var(--blue);background:rgba(79,156,249,.08)}
+.tni-c{margin-left:auto;font-family:var(--fm);font-size:.65rem;padding:2px 6px;border-radius:20px;background:var(--bg3);color:var(--tx3)}
+.tsec{display:none}.tsec.on{display:block}
+.tcard{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:22px;margin-bottom:12px;transition:all var(--t)}
+.tcard:hover{border-color:var(--bdr2);transform:translateX(3px)}
+.tc-h{display:flex;align-items:flex-start;gap:12px;margin-bottom:11px}
+.prio{padding:3px 9px;border-radius:40px;font-size:.66rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;flex-shrink:0;margin-top:2px}
+.ph{background:rgba(239,83,80,.12);color:var(--red);border:1px solid rgba(239,83,80,.2)}
+.pm{background:rgba(246,184,75,.12);color:var(--amber);border:1px solid rgba(246,184,75,.2)}
+.pl{background:rgba(82,201,130,.12);color:var(--green);border:1px solid rgba(82,201,130,.2)}
+.tc-t{font-size:.89rem;font-weight:600;flex:1}
+.tc-d{font-size:.82rem;color:var(--tx2);line-height:1.7}
+.tex{margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid var(--bdr)}
+.tex-h{display:grid;grid-template-columns:1fr 1fr;font-family:var(--fm);font-size:.64rem;text-transform:uppercase;letter-spacing:.1em}
+.tex-bl{padding:5px 12px;background:rgba(239,83,80,.1);color:var(--red)}
+.tex-al{padding:5px 12px;background:rgba(82,201,130,.1);color:var(--green)}
+.tex-body{display:grid;grid-template-columns:1fr 1fr}
+.tex-b{padding:10px 12px;font-size:.78rem;line-height:1.6;color:var(--tx2);border-right:1px solid var(--bdr);background:rgba(239,83,80,.03)}
+.tex-a{padding:10px 12px;font-size:.78rem;line-height:1.6;color:var(--tx2);background:rgba(82,201,130,.03)}
+
+/* ════════════════════════════════════════════════════
+   COMPARE PAGE
+════════════════════════════════════════════════════ */
+.jd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.jdc{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:18px;position:relative}
+.jda{border-style:dashed;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:148px;transition:all var(--t)}
+.jda:hover{border-color:var(--blue);background:rgba(79,156,249,.03)}
+.jda-ico{font-size:1.9rem;color:var(--tx3);margin-bottom:7px}
+.jda-t{font-size:.81rem;color:var(--tx3)}
+.jd-r{font-family:var(--fd);font-size:.92rem;font-weight:600;margin-bottom:3px}
+.jd-c2{font-size:.75rem;color:var(--tx3)}
+.jd-m{margin-top:12px}
+.jd-ms{font-family:var(--fm);font-size:.72rem;color:var(--tx2);display:flex;justify-content:space-between;margin-bottom:5px}
+.jdrm{position:absolute;top:9px;right:9px;color:var(--tx3);transition:color var(--t);font-size:.88rem}
+.jdrm:hover{color:var(--red)}
+.ctbl{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden}
+.ctbl table{width:100%;border-collapse:collapse}
+.ctbl th{padding:11px 18px;text-align:left;font-family:var(--fm);font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);background:var(--bg3);border-bottom:1px solid var(--bdr)}
+.ctbl td{padding:12px 18px;font-size:.83rem;border-bottom:1px solid var(--bdr)}
+.ctbl tr:last-child td{border-bottom:none}
+.ctbl tr:hover td{background:rgba(255,255,255,.02)}
+.scp{display:inline-flex;font-family:var(--fm);font-size:.8rem;font-weight:600;padding:3px 9px;border-radius:40px}
+
+/* ════════════════════════════════════════════════════
+   DASHBOARD
+════════════════════════════════════════════════════ */
+.dstats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:0 52px;margin-bottom:26px}
+.dsc{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:20px}
+.dsc-n{font-family:var(--fd);font-size:1.9rem;font-weight:700}
+.dsc-l{font-size:.75rem;color:var(--tx3);margin-top:3px}
+.dsc-c{font-size:.72rem;margin-top:6px}
+.up{color:var(--green)}.dn{color:var(--red)}
+.hwrap{padding:0 52px 60px}
+.htbl{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden}
+.htbl table{width:100%;border-collapse:collapse}
+.htbl th{padding:11px 18px;text-align:left;font-family:var(--fm);font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);background:var(--bg3);border-bottom:1px solid var(--bdr)}
+.htbl td{padding:13px 18px;font-size:.83rem;border-bottom:1px solid var(--bdr);vertical-align:middle}
+.htbl tr:last-child td{border-bottom:none}
+.htbl tr:hover td{background:rgba(255,255,255,.02)}
+
+footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:26px 52px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+
+/* ════════════════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════════════════ */
+@media(max-width:1060px){
+  .ats-layout,.tips-layout{grid-template-columns:1fr}
+  .ats-side{position:static}
+  .tnav{position:static;display:flex;flex-wrap:wrap;gap:4px}
+  .upload-layout{grid-template-columns:1fr}
+  .sticky{position:static}
+  .dstats{grid-template-columns:1fr 1fr}
+  .jd-grid{grid-template-columns:1fr 1fr}
+  .feat-grid{grid-template-columns:1fr 1fr}
+  .steps{grid-template-columns:1fr}
+  .steps::before{display:none}
+}
+@media(max-width:720px){
+  .nav{padding:0 18px}
+  .nav-links{display:none}
+  .ham{display:flex}
+  .wrap,.upload-layout,.ats-layout,.tips-layout,.hwrap,.dstats{padding-left:18px!important;padding-right:18px!important}
+  .hero{padding:60px 18px 50px}
+  .feat-sec,.hiw,.cta-sec{padding:70px 18px}
+  .feat-grid{grid-template-columns:1fr}
+  .hstats{gap:20px}
+  .dstats{grid-template-columns:1fr 1fr}
+  .jd-grid{grid-template-columns:1fr}
+  footer{padding:20px 18px;flex-direction:column;text-align:center}
+  .ats-layout,.tips-layout{padding:16px 18px 40px!important}
+  .hwrap{padding:0 18px 40px!important}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo" onclick="go('home')">
+    <div class="nav-logo-ico">📊</div>ResumeIQ<span>.</span>
+  </div>
+  <div class="nav-links">
+    <button class="nl" data-p="home">Home</button>
+    <button class="nl" data-p="upload">Analyze</button>
+    <button class="nl" data-p="ats">ATS Score</button>
+    <button class="nl" data-p="tips">Tips</button>
+    <button class="nl" data-p="compare">Compare</button>
+    <button class="nl" data-p="dashboard">History</button>
+  </div>
+  <div class="nav-right">
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️</button>
+    <button class="ham" id="hamBtn" onclick="document.getElementById('mnav').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE NAV -->
+<div class="mnav" id="mnav">
+  <button class="mnl" onclick="go('home');closeMnav()">🏠 Home</button>
+  <button class="mnl" onclick="go('upload');closeMnav()">📄 Analyze Resume</button>
+  <button class="mnl" onclick="go('ats');closeMnav()">📊 ATS Score</button>
+  <button class="mnl" onclick="go('tips');closeMnav()">💡 Tips</button>
+  <button class="mnl" onclick="go('compare');closeMnav()">⚖️ Compare</button>
+  <button class="mnl" onclick="go('dashboard');closeMnav()">📈 History</button>
+</div>
+
+<!-- ════ HOME ════════════════════════════════════════ -->
+<div class="pg" id="pg-home">
+  <section class="hero">
+    <div class="hbg"></div><div class="hgrid"></div>
+    <div class="hero-inner">
+      <div class="htag"><span class="htdot"></span>Spring Boot + Claude AI + MySQL</div>
+      <h1 class="htitle">Beat the ATS.<br>Land the <span class="gtxt">Interview.</span></h1>
+      <p class="hsub">Upload your resume and get an instant ATS compatibility score, keyword analysis, and personalized improvement tips — powered by Java Spring Boot and Claude AI.</p>
+      <div class="hbtns">
+        <button class="btn btn-p btn-lg" onclick="go('upload')">📄 Analyze My Resume</button>
+        <button class="btn btn-s btn-lg" onclick="go('dashboard')">📈 View History</button>
+      </div>
+      <div class="hstats">
+        <div><div class="hs-n">95%</div><div class="hs-l">AI Accuracy</div></div>
+        <div><div class="hs-n">&lt;30s</div><div class="hs-l">Analysis Time</div></div>
+        <div><div class="hs-n">3×</div><div class="hs-l">More Interviews</div></div>
+        <div><div class="hs-n">100%</div><div class="hs-l">Private</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feat-sec">
+    <div class="wrap">
+      <div class="slbl">Features</div>
+      <h2 class="stitle">Everything you need to<br><em>stand out</em></h2>
+      <div class="feat-grid">
+        <div class="fc fc1 rv"><div class="fci fci1">🎯</div><h3 class="fc-t">ATS Score Analysis</h3><p class="fc-d">Precise 0–100 score with section breakdowns across contact, skills, experience, and education.</p></div>
+        <div class="fc fc2 rv"><div class="fci fci2">🔑</div><h3 class="fc-t">Keyword Matching</h3><p class="fc-d">See which job-critical keywords you have and which are missing — with smart suggestions.</p></div>
+        <div class="fc fc3 rv"><div class="fci fci3">💡</div><h3 class="fc-t">Actionable Tips</h3><p class="fc-d">Prioritized tips with real before/after examples across formatting, content, keywords, and structure.</p></div>
+        <div class="fc fc4 rv"><div class="fci fci4">⚖️</div><h3 class="fc-t">Job Comparison</h3><p class="fc-d">Compare your resume against up to 3 job descriptions side-by-side to find the best fit.</p></div>
+        <div class="fc fc5 rv"><div class="fci fci5">📈</div><h3 class="fc-t">History Dashboard</h3><p class="fc-d">All analyses saved in MySQL/PostgreSQL. Track score improvements and reload any past result.</p></div>
+        <div class="fc fc6 rv"><div class="fci fci6">☕</div><h3 class="fc-t">Spring Boot Backend</h3><p class="fc-d">Production Java backend — PDFBox parsing, Apache POI (DOCX), JPA/Hibernate, REST API.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hiw">
+    <div class="wrap">
+      <div class="slbl">Process</div>
+      <h2 class="stitle">Three steps to a<br><em>better resume</em></h2>
+      <div class="steps">
+        <div class="step rv"><div class="step-n">1</div><h3 class="step-t">Upload Resume</h3><p class="step-d">Drag & drop your PDF or DOCX. Spring Boot parses it with PDFBox / Apache POI server-side.</p></div>
+        <div class="step rv"><div class="step-n">2</div><h3 class="step-t">AI Analyzes It</h3><p class="step-d">The backend calls Claude AI, which scores your resume and returns structured JSON with tips.</p></div>
+        <div class="step rv"><div class="step-n">3</div><h3 class="step-t">Improve & Repeat</h3><p class="step-d">Apply the tips, re-upload your improved resume, and watch your score climb. History saved in DB.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-sec">
+    <div class="wrap">
+      <div class="cta-box rv">
+        <h2>Ready to get past the bots?</h2>
+        <p>Upload your resume and get your ATS score in under 30 seconds. No sign-up needed.</p>
+        <button class="btn btn-p btn-lg" onclick="go('upload')">🚀 Analyze My Resume — Free</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="nav-logo" style="cursor:default;font-size:.95rem">
+      <div class="nav-logo-ico" style="width:24px;height:24px;font-size:.75rem">📊</div>
+      ResumeIQ<span style="color:var(--blue)">.</span>
+    </div>
+    <span style="font-size:.75rem;color:var(--tx3)">Spring Boot · Claude AI · MySQL/PostgreSQL</span>
+    <span style="font-size:.75rem;color:var(--tx3)">© 2025 ResumeIQ</span>
+  </footer>
+</div>
+
+<!-- ════ UPLOAD ══════════════════════════════════════ -->
+<div class="pg" id="pg-upload">
+  <div class="wrap" style="padding-top:44px;padding-bottom:20px">
+    <div class="slbl">Analyze</div>
+    <h1 class="stitle">Upload Your <em>Resume</em></h1>
+    <p style="color:var(--tx2);margin-top:7px;font-size:.9rem;font-weight:300">PDF · DOCX · TXT &nbsp;|&nbsp; Max 10MB &nbsp;|&nbsp; Text extracted server-side by Spring Boot</p>
+  </div>
+  <div class="upload-layout">
+    <div>
+      <div class="dz" id="dz">
+        <div class="dz-ico">📄</div>
+        <h3 class="dz-t">Drop your resume here</h3>
+        <p class="dz-s">or click to browse</p>
+        <div class="dz-or">or</div>
+        <button class="btn btn-s" onclick="document.getElementById('fi').click()">Browse Files</button>
+        <div class="dz-fmts"><span class="fmt">PDF</span><span class="fmt">DOCX</span><span class="fmt">TXT</span></div>
+        <input type="file" id="fi" accept=".pdf,.docx,.txt" style="display:none">
+      </div>
+      <div class="fp" id="fp">
+        <span id="fp-ico" style="font-size:1.8rem">📄</span>
+        <div style="flex:1"><div class="fp-n" id="fp-n">—</div><div class="fp-s" id="fp-s">—</div></div>
+        <button class="fp-rm" onclick="rmFile()">✕</button>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h4 style="font-family:var(--fd);font-size:.9rem;font-weight:600;margin-bottom:12px">💡 Tips for Best Results</h4>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <p style="display:flex;gap:8px;font-size:.8rem;color:var(--tx2)"><span style="color:var(--teal)">→</span>Use a single-column layout — no tables or text boxes</p>
+          <p style="display:flex;gap:8px;font-size:.8rem;color:var(--tx2)"><span style="color:var(--teal)">→</span>Include the job title in your summary/objective</p>
+          <p style="display:flex;gap:8px;font-size:.8rem;color:var(--tx2)"><span style="color:var(--teal)">→</span>Paste the full job description for precise keyword matching</p>
+          <p style="display:flex;gap:8px;font-size:.8rem;color:var(--tx2)"><span style="color:var(--teal)">→</span>Use standard section headers: Skills, Experience, Education</p>
+        </div>
+      </div>
+    </div>
+    <div class="sticky">
+      <div class="card">
+        <h3 style="font-family:var(--fd);font-size:1rem;font-weight:600;margin-bottom:18px">Target Job Details</h3>
+        <div class="fg"><label class="fl">Job Role / Title *</label><input class="fi" id="jobRole" type="text" placeholder="e.g. Senior Software Engineer"><div class="ferr" id="roleErr"></div></div>
+        <div class="fg"><label class="fl">Company (optional)</label><input class="fi" id="jobCo" type="text" placeholder="e.g. Google, Meta…"></div>
+        <div class="fg">
+          <label class="fl">Experience Level</label>
+          <select class="fsel" id="expLvl">
+            <option>Entry Level (0–2 yrs)</option>
+            <option selected>Mid Level (2–5 yrs)</option>
+            <option>Senior Level (5–10 yrs)</option>
+            <option>Lead / Principal (10+ yrs)</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Job Description (optional)</label><textarea class="fta" id="jobDesc" placeholder="Paste the job description for best keyword matching…"></textarea><div class="fhint">More detail = more accurate matching</div></div>
+        <button class="ana-btn" id="anaBtn" onclick="startAnalysis()">⚡ Analyze Resume</button>
+        <p style="text-align:center;font-size:.7rem;color:var(--tx3);margin-top:10px">Powered by Claude AI via Spring Boot backend</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ ATS SCORE ═══════════════════════════════════ -->
+<div class="pg" id="pg-ats">
+  <div class="wrap" style="padding-top:42px;padding-bottom:0">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px">
+      <div><div class="slbl">ATS Analysis</div><h1 class="stitle">Your ATS <em>Score</em></h1></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:6px">
+        <button class="btn btn-s btn-sm" onclick="go('tips')">💡 Tips</button>
+        <button class="btn btn-s btn-sm" onclick="dlReport()">⬇️ Report</button>
+        <button class="btn btn-p btn-sm" onclick="go('upload')">🔄 Re-analyze</button>
+      </div>
+    </div>
+    <p id="ats-summary" style="margin-top:10px;color:var(--tx2);font-size:.87rem;line-height:1.75;max-width:680px;font-weight:300"></p>
+  </div>
+  <div class="ats-layout">
+    <div class="ats-side">
+      <div class="gauge-card">
+        <div class="gw">
+          <svg class="gsvg" viewBox="0 0 180 180">
+            <circle class="gbg" cx="90" cy="90" r="80"/>
+            <circle class="gfill" cx="90" cy="90" r="80"/>
+          </svg>
+          <div class="gcenter">
+            <div class="g-sc" id="g-score">—</div>
+            <div class="g-lb">ATS SCORE</div>
+          </div>
+        </div>
+        <span class="sg" id="g-grade">—</span>
+        <div class="sm" id="g-match">— job match</div>
+      </div>
+      <div class="card">
+        <h4 style="font-family:var(--fd);font-size:.88rem;font-weight:600;margin-bottom:13px">Section Scores</h4>
+        <div class="sbars" id="side-bars"></div>
+      </div>
+      <div class="card">
+        <h4 style="font-family:var(--fd);font-size:.88rem;font-weight:600;margin-bottom:11px">✅ Strengths</h4>
+        <div id="strengths"></div>
+      </div>
+      <div class="card">
+        <h4 style="font-family:var(--fd);font-size:.88rem;font-weight:600;margin-bottom:11px">⚡ Quick Wins</h4>
+        <div id="qwins"></div>
+      </div>
+    </div>
+    <div class="ats-main">
+      <div class="kcard rv">
+        <h3>🔑 Keyword Analysis</h3>
+        <div class="ksub">Found in your resume</div><div class="ktags" id="kw-found"></div>
+        <div class="ksub" style="margin-top:14px">Missing — add these</div><div class="ktags" id="kw-miss"></div>
+      </div>
+      <div class="bdcard rv">
+        <h3>📋 Section-by-Section Breakdown</h3>
+        <div id="breakdown"></div>
+      </div>
+      <div class="card rv" style="background:linear-gradient(135deg,rgba(79,156,249,.07),rgba(52,212,180,.05));border-color:rgba(79,156,249,.2);text-align:center;padding:30px">
+        <div style="font-size:1.8rem;margin-bottom:10px">💡</div>
+        <h3 style="font-family:var(--fd);font-size:1rem;margin-bottom:7px">Ready to improve your score?</h3>
+        <p style="font-size:.82rem;color:var(--tx2);margin-bottom:18px">Get prioritized tips with before/after examples for every category.</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-p" onclick="go('tips')">💡 View Tips</button>
+          <button class="btn btn-s" onclick="go('compare')">⚖️ Compare Jobs</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ TIPS ════════════════════════════════════════ -->
+<div class="pg" id="pg-tips">
+  <div class="wrap" style="padding-top:42px;padding-bottom:22px;background:var(--bg2);border-bottom:1px solid var(--bdr)">
+    <div class="slbl">Improvement Tips</div>
+    <h1 class="stitle">How to <em>improve</em> your resume</h1>
+    <p style="color:var(--tx2);margin-top:7px;font-size:.87rem;font-weight:300">Personalized AI tips with before/after examples</p>
+  </div>
+  <div class="tips-layout">
+    <div class="tnav">
+      <button class="tni on" data-cat="formatting" onclick="switchTip('formatting')">🎨 Formatting <span class="tni-c" id="tc-formatting">0</span></button>
+      <button class="tni" data-cat="keywords"   onclick="switchTip('keywords')">🔑 Keywords <span class="tni-c" id="tc-keywords">0</span></button>
+      <button class="tni" data-cat="content"    onclick="switchTip('content')">✍️ Content <span class="tni-c" id="tc-content">0</span></button>
+      <button class="tni" data-cat="structure"  onclick="switchTip('structure')">🏗️ Structure <span class="tni-c" id="tc-structure">0</span></button>
+    </div>
+    <div>
+      <div class="tsec on" id="ts-formatting"></div>
+      <div class="tsec" id="ts-keywords"></div>
+      <div class="tsec" id="ts-content"></div>
+      <div class="tsec" id="ts-structure"></div>
+      <div id="tips-empty" style="text-align:center;padding:60px 0;display:none">
+        <div style="font-size:2.5rem;margin-bottom:12px">💡</div>
+        <p style="color:var(--tx2);margin-bottom:16px">Analyze a resume first to see tips.</p>
+        <button class="btn btn-p" onclick="go('upload')">Upload Resume</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ COMPARE ════════════════════════════════════ -->
+<div class="pg" id="pg-compare">
+  <div class="wrap" style="padding-top:42px;padding-bottom:22px">
+    <div class="slbl">Job Comparison</div>
+    <h1 class="stitle">Compare vs <em>Job Descriptions</em></h1>
+    <p style="color:var(--tx2);margin-top:7px;font-size:.87rem;font-weight:300">Add up to 3 job descriptions to find which role fits best</p>
+  </div>
+  <div class="wrap" style="padding-bottom:60px">
+    <div class="jd-grid" id="jd-grid">
+      <div class="jdc jda" onclick="openJDModal()"><div class="jda-ico">+</div><div class="jda-t">Add Job Description</div></div>
+    </div>
+    <div class="ctbl">
+      <table>
+        <thead><tr id="cmp-th"><th>Metric</th></tr></thead>
+        <tbody id="cmp-tb"><tr><td style="text-align:center;padding:36px;color:var(--tx3)">Add job descriptions above to compare</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DASHBOARD ══════════════════════════════════ -->
+<div class="pg" id="pg-dashboard">
+  <div class="wrap" style="padding-top:42px;padding-bottom:22px">
+    <div class="slbl">History</div>
+    <h1 class="stitle">Analysis <em>Dashboard</em></h1>
+    <p style="color:var(--tx2);margin-top:7px;font-size:.87rem;font-weight:300">All results saved in your MySQL/PostgreSQL database</p>
+  </div>
+  <div class="dstats">
+    <div class="dsc rv"><div class="dsc-n" id="d-total">0</div><div class="dsc-l">Total Analyses</div><div class="dsc-c up">All time</div></div>
+    <div class="dsc rv"><div class="dsc-n" id="d-avg" style="color:var(--blue)">—</div><div class="dsc-l">Average Score</div><div class="dsc-c">ATS score</div></div>
+    <div class="dsc rv"><div class="dsc-n" id="d-best" style="color:var(--green)">—</div><div class="dsc-l">Best Score</div><div class="dsc-c up">Personal best</div></div>
+    <div class="dsc rv"><div class="dsc-n" id="d-exc" style="color:var(--teal)">0</div><div class="dsc-l">Excellent Grades</div><div class="dsc-c up">Score 80+</div></div>
+  </div>
+  <div class="hwrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <h3 style="font-family:var(--fd);font-size:1rem;font-weight:600">Analysis History</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-s btn-sm" onclick="go('upload')">+ New</button>
+        <button class="btn btn-s btn-sm" onclick="loadDash()">🔄 Refresh</button>
+        <button class="btn btn-d btn-sm" onclick="clearAll()">🗑 Clear All</button>
+      </div>
+    </div>
+    <div class="htbl">
+      <table>
+        <thead><tr><th>Resume</th><th>Job Role</th><th>Score</th><th>Grade</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="hist-tb"><tr><td colspan="6" style="text-align:center;padding:36px;color:var(--tx3)">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYZING OVERLAY -->
+<div class="aov" id="aov">
+  <div class="aov-spin"></div>
+  <div class="aov-t">Analyzing your resume…</div>
+  <div class="aov-s">Spring Boot is parsing · Claude AI is scoring</div>
+  <div class="aov-steps" id="aov-steps"></div>
+</div>
+
+<!-- ADD JD MODAL -->
+<div class="mbg" id="jd-modal">
+  <div class="mdl">
+    <h2>⚖️ Add Job Description</h2>
+    <p>Add a role to compare against your resume using AI analysis.</p>
+    <div class="fg"><label class="fl">Job Role *</label><input class="fi" id="jd-role" placeholder="e.g. Frontend Engineer"></div>
+    <div class="fg"><label class="fl">Company (optional)</label><input class="fi" id="jd-co" placeholder="e.g. Shopify"></div>
+    <div class="fg"><label class="fl">Job Description</label><textarea class="fta" id="jd-desc" placeholder="Paste the job description…"></textarea></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-p" id="jd-add-btn" onclick="addJD()" style="flex:1">Run Comparison</button>
+      <button class="btn btn-s" onclick="closeJDModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+/* ── STATE ───────────────────────────────────────── */
+const S = {
+  theme: localStorage.getItem('riq_theme') || 'dark',
+  page: 'home',
+  file: null,
+  analysis: null,   // last AnalysisResponse from server
+  compJDs: [],
+};
+
+const API = '';  // empty = same origin (Spring Boot serves frontend)
+
+/* ── NAV ─────────────────────────────────────────── */
+function go(p) {
+  document.querySelectorAll('.pg').forEach(el => el.classList.remove('on'));
+  document.querySelectorAll('.nl').forEach(el => el.classList.remove('on'));
+  const pg = document.getElementById('pg-' + p);
+  if (pg) pg.classList.add('on');
+  const lnk = document.querySelector(`.nl[data-p="${p}"]`);
+  if (lnk) lnk.classList.add('on');
+  S.page = p;
+  window.scrollTo(0, 0);
+  if (p === 'dashboard') loadDash();
+  if (p === 'ats'   && S.analysis) renderATS(S.analysis.result);
+  if (p === 'tips'  && S.analysis) renderTips(S.analysis.result);
+  if (p === 'compare') renderCompare();
+  initRev();
+}
+function closeMnav() { document.getElementById('mnav').classList.remove('open'); }
+
+/* ── THEME ───────────────────────────────────────── */
+function toggleTheme() {
+  S.theme = S.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', S.theme);
+  localStorage.setItem('riq_theme', S.theme);
+  document.getElementById('themeBtn').textContent = S.theme === 'dark' ? '☀️' : '🌙';
+}
+
+/* ── TOAST ───────────────────────────────────────── */
+function toast(msg, type='info') {
+  const ico = {ok:'✅',err:'❌',info:'ℹ️',warn:'⚠️'};
+  const el = document.createElement('div');
+  el.className = 'toast';
+  if (type==='ok') el.style.borderColor='rgba(82,201,130,.4)';
+  if (type==='err') el.style.borderColor='rgba(239,83,80,.4)';
+  el.innerHTML = `<span>${ico[type]||'💬'}</span><span>${msg}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4200);
+}
+
+/* ── REVEAL ──────────────────────────────────────── */
+function initRev() {
+  setTimeout(() => {
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach((e,i) => { if(e.isIntersecting) setTimeout(()=>e.target.classList.add('in'), i*60); });
+    }, {threshold:.1});
+    document.querySelectorAll('.rv:not(.in)').forEach(el => obs.observe(el));
+  }, 80);
+}
+
+/* ── FILE UPLOAD ─────────────────────────────────── */
+function initUpload() {
+  const dz = document.getElementById('dz');
+  const fi = document.getElementById('fi');
+  dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+  dz.addEventListener('drop',  e => { e.preventDefault(); dz.classList.remove('over'); handleFile(e.dataTransfer.files[0]); });
+  dz.addEventListener('click', () => fi.click());
+  fi.addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+}
+function handleFile(f) {
+  const ext = f.name.split('.').pop().toLowerCase();
+  if (!['pdf','docx','txt'].includes(ext)) { toast('Upload PDF, DOCX or TXT only','err'); return; }
+  if (f.size > 10*1024*1024) { toast('File must be under 10MB','err'); return; }
+  S.file = f;
+  const icons = {pdf:'📄',docx:'📝',txt:'📃'};
+  const fp = document.getElementById('fp');
+  fp.classList.add('show');
+  document.getElementById('fp-ico').textContent = icons[ext]||'📄';
+  document.getElementById('fp-n').textContent = f.name;
+  document.getElementById('fp-s').textContent = fmtSz(f.size);
+  toast('File ready!','ok');
+}
+function rmFile() {
+  S.file = null;
+  document.getElementById('fp').classList.remove('show');
+  document.getElementById('fi').value = '';
+}
+function fmtSz(b) {
+  if(b<1024) return b+' B';
+  if(b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(1)+' MB';
+}
+
+/* ── ANALYSIS STEPS ──────────────────────────────── */
+const STEPS = ['Uploading resume to server…','Extracting text content…','Calling Claude AI…','Scoring ATS compatibility…','Matching keywords…','Building improvement tips…'];
+function animSteps() {
+  const el = document.getElementById('aov-steps');
+  el.innerHTML = STEPS.map((s,i) => `<div class="astep" id="as${i}">⏳ ${s}</div>`).join('');
+  let i = 0;
+  return setInterval(() => {
+    if(i>0) { const p=document.getElementById(`as${i-1}`); if(p){p.className='astep done';p.innerHTML=`✅ ${STEPS[i-1]}`;} }
+    const c = document.getElementById(`as${i}`);
+    if(c){c.className='astep act';c.innerHTML=`⚡ ${STEPS[i]}`;}
+    i++;
+  }, 800);
+}
+
+/* ── START ANALYSIS ──────────────────────────────── */
+async function startAnalysis() {
+  const role = document.getElementById('jobRole').value.trim();
+  const roleErr = document.getElementById('roleErr');
+  if (!S.file) { toast('Please upload your resume first','err'); return; }
+  if (!role) {
+    document.getElementById('jobRole').classList.add('err');
+    roleErr.textContent = 'Job role is required'; return;
+  }
+  document.getElementById('jobRole').classList.remove('err');
+  roleErr.textContent = '';
+
+  const ov = document.getElementById('aov');
+  ov.classList.add('show');
+  const iv = animSteps();
+
+  try {
+    const fd = new FormData();
+    fd.append('file', S.file);
+    fd.append('jobRole', role);
+    fd.append('jobCompany', document.getElementById('jobCo').value.trim());
+    fd.append('experienceLevel', document.getElementById('expLvl').value);
+    fd.append('jobDescription', document.getElementById('jobDesc').value.trim());
+
+    const res = await fetch(`${API}/api/analyze`, {method:'POST', body:fd});
+    const data = await res.json();
+
+    clearInterval(iv);
+    STEPS.forEach((_,i) => { const e=document.getElementById(`as${i}`); if(e){e.className='astep done';e.innerHTML=`✅ ${STEPS[i]}`;} });
+
+    if (!res.ok) {
+      setTimeout(() => {
+        ov.classList.remove('show');
+        const msg = data.message || 'Analysis failed';
+        if (msg.includes('Rate limit') || msg.includes('quota') || msg.includes('429') || msg.includes('⏳')) {
+          toast('⏳ Rate limit exceeded. Please wait 1 minute and try again.', 'warn');
+        } else if (msg.includes('API key') || msg.includes('🔑') || msg.includes('403')) {
+          toast('🔑 Invalid Gemini API key. Check application.properties.', 'err');
+        } else if (msg.includes('JSON') || msg.includes('parse') || msg.includes('⚠️')) {
+          toast('⚠️ AI returned bad response. Please try again.', 'warn');
+        } else {
+          toast('❌ ' + msg, 'err');
+        }
+      }, 600);
+      return;
+    }
+
+    S.analysis = data;
+    setTimeout(()=>{ ov.classList.remove('show'); go('ats'); toast('Analysis complete! Score: '+data.result.ats_score,'ok'); }, 700);
+
+  } catch(e) {
+    clearInterval(iv); ov.classList.remove('show');
+    toast('❌ Cannot reach server. Is Spring Boot running on port 8085?','err');
+  }
+}
+
+/* ── HELPERS ─────────────────────────────────────── */
+function sColor(s) {
+  if(s>=80) return 'var(--green)';
+  if(s>=60) return 'var(--amber)';
+  if(s>=40) return 'var(--rose)';
+  return 'var(--red)';
+}
+function gClass(g) {
+  return {Excellent:'bg',Good:'bt',Average:'ba',Poor:'br'}[g]||'bb';
+}
+const $ = id => document.getElementById(id);
+
+/* ── RENDER ATS ──────────────────────────────────── */
+function renderATS(r) {
+  if (!r) return;
+  const score = r.ats_score||0;
+
+  // Gauge
+  const fill = document.querySelector('.gfill');
+  if(fill){ fill.style.stroke=sColor(score); setTimeout(()=>{fill.style.strokeDashoffset=502-(score/100)*502;},120); }
+  if($('g-score')){ $('g-score').textContent=score; $('g-score').style.color=sColor(score); }
+  if($('g-grade')){ $('g-grade').textContent=r.grade||'—'; $('g-grade').className=`sg ${gClass(r.grade)}`; }
+  if($('g-match')) $('g-match').textContent=`${r.job_match_percentage||0}% job match`;
+  if($('ats-summary')) $('ats-summary').textContent=r.summary||'';
+
+  const ss = r.section_scores||{};
+  const sn = r.section_notes||{};
+  const secs = [
+    {k:'contact',l:'Contact Info',i:'📌'},
+    {k:'summary_section',l:'Summary',i:'📝'},
+    {k:'skills',l:'Skills',i:'⚙️'},
+    {k:'experience',l:'Experience',i:'💼'},
+    {k:'education',l:'Education',i:'🎓'},
+  ];
+
+  // Sidebar bars
+  if($('side-bars')) $('side-bars').innerHTML = secs.map(s=>`
+    <div class="sb-item">
+      <div class="sb-top"><span class="sb-n">${s.l}</span><span class="sb-p">${ss[s.k]||0}%</span></div>
+      <div class="pb"><div class="pf" style="background:${sColor(ss[s.k]||0)}" data-w="${ss[s.k]||0}"></div></div>
+    </div>`).join('');
+
+  // Breakdown
+  if($('breakdown')) $('breakdown').innerHTML = secs.map(s=>`
+    <div class="bdr-row">
+      <span class="bdr-ico">${s.i}</span>
+      <div class="bdr-inf"><div class="bdr-n">${s.l}</div><div class="bdr-note">${sn[s.k]||''}</div></div>
+      <div class="bdr-bar"><div class="pb"><div class="pf" style="background:${sColor(ss[s.k]||0)}" data-w="${ss[s.k]||0}"></div></div></div>
+      <div class="bdr-sc" style="color:${sColor(ss[s.k]||0)}">${ss[s.k]||0}%</div>
+    </div>`).join('');
+
+  if($('kw-found'))  $('kw-found').innerHTML  = (r.keywords_found||[]).slice(0,22).map(k=>`<span class="kf">✓ ${k}</span>`).join('');
+  if($('kw-miss'))   $('kw-miss').innerHTML   = (r.keywords_missing||[]).slice(0,16).map(k=>`<span class="km">✗ ${k}</span>`).join('');
+
+  if($('strengths')) $('strengths').innerHTML = (r.strengths||[]).map(s=>
+    `<div style="display:flex;gap:8px;font-size:.82rem;color:var(--tx2);padding:7px 0;border-bottom:1px solid var(--bdr)"><span style="color:var(--green);flex-shrink:0">✓</span>${s}</div>`).join('');
+
+  if($('qwins')) $('qwins').innerHTML = (r.quick_wins||[]).map((w,i)=>
+    `<div style="display:flex;gap:9px;padding:7px 0;border-bottom:1px solid var(--bdr)">
+      <span style="color:var(--blue);font-family:var(--fm);font-size:.7rem;min-width:20px">${String(i+1).padStart(2,'0')}</span>
+      <span style="font-size:.81rem;color:var(--tx2)">${w}</span>
+    </div>`).join('');
+
+  setTimeout(()=>{ document.querySelectorAll('.pf[data-w]').forEach(b=>{b.style.width=b.dataset.w+'%';}); },280);
+}
+
+/* ── RENDER TIPS ─────────────────────────────────── */
+function renderTips(r) {
+  if (!r||!r.tips) { $('tips-empty').style.display='block'; return; }
+  $('tips-empty').style.display='none';
+  const cats = [
+    {k:'formatting',l:'Formatting'},{k:'keywords',l:'Keywords'},
+    {k:'content',l:'Content'},{k:'structure',l:'Structure'},
+  ];
+  cats.forEach(cat => {
+    const tips = r.tips[cat.k]||[];
+    const cnt = $(`tc-${cat.k}`); if(cnt) cnt.textContent=tips.length;
+    const sec = $(`ts-${cat.k}`); if(!sec) return;
+    sec.innerHTML = tips.length ? tips.map(t=>`
+      <div class="tcard rv">
+        <div class="tc-h">
+          <span class="prio p${(t.priority||'m')[0].toLowerCase()}">${t.priority||'Medium'}</span>
+          <span class="tc-t">${t.title||''}</span>
+        </div>
+        <div class="tc-d">${t.description||''}</div>
+        ${t.before&&t.after?`
+        <div class="tex">
+          <div class="tex-h"><span class="tex-bl">✗ Before</span><span class="tex-al">✓ After</span></div>
+          <div class="tex-body"><div class="tex-b">${t.before}</div><div class="tex-a">${t.after}</div></div>
+        </div>`:''}</div>`).join('')
+      : '<div style="color:var(--tx3);padding:16px;font-size:.83rem">No issues found here — great job! 🎉</div>';
+  });
+  switchTip('formatting');
+  setTimeout(initRev, 80);
+}
+function switchTip(cat) {
+  document.querySelectorAll('.tni').forEach(b => b.classList.toggle('on', b.dataset.cat===cat));
+  document.querySelectorAll('.tsec').forEach(s => s.classList.toggle('on', s.id===`ts-${cat}`));
+}
+
+/* ── COMPARE ─────────────────────────────────────── */
+function renderCompare() {
+  const jds = S.compJDs;
+  const grid = $('jd-grid'); if(!grid) return;
+  grid.innerHTML = jds.map((jd,i)=>`
+    <div class="jdc">
+      <button class="jdrm" onclick="rmJD(${i})">✕</button>
+      <span class="badge bb" style="margin-bottom:8px">${jd.role}</span>
+      <div class="jd-r">${jd.role}</div>
+      <div class="jd-c2">${jd.co||'Company not specified'}</div>
+      <div class="jd-m">
+        <div class="jd-ms"><span>Match</span><span style="color:${sColor(jd.score||0)}">${jd.score||0}%</span></div>
+        <div class="pb"><div class="pf" style="background:${sColor(jd.score||0)};width:${jd.score||0}%"></div></div>
+      </div>
+    </div>`).join('')
+    + (jds.length<3?`<div class="jdc jda" onclick="openJDModal()"><div class="jda-ico">+</div><div class="jda-t">Add Job Description</div></div>`:'');
+  renderCmpTbl();
+}
+function renderCmpTbl() {
+  const jds = S.compJDs;
+  const th=$('cmp-th'), tb=$('cmp-tb'); if(!th||!tb) return;
+  if(!jds.length){
+    th.innerHTML='<th>Metric</th>';
+    tb.innerHTML='<tr><td style="text-align:center;padding:36px;color:var(--tx3)">Add job descriptions above to compare</td></tr>';
+    return;
+  }
+  th.innerHTML='<th>Metric</th>'+jds.map(j=>`<th>${j.role}</th>`).join('');
+  const metrics=['ATS Score','Keyword Match','Skills Fit','Experience Fit','Overall Match'];
+  tb.innerHTML=metrics.map(m=>`<tr><td style="font-weight:500">${m}</td>${jds.map(j=>{
+    const sc=j.score||0;
+    return `<td><span class="scp" style="background:${sColor(sc)}22;color:${sColor(sc)}">${sc}%</span></td>`;
+  }).join('')}</tr>`).join('');
+}
+function openJDModal()  { $('jd-modal').classList.add('open'); }
+function closeJDModal() { $('jd-modal').classList.remove('open'); }
+async function addJD() {
+  const role=$('jd-role').value.trim(), co=$('jd-co').value.trim(), desc=$('jd-desc').value.trim();
+  if(!role){toast('Job role required','err');return;}
+  if(!S.analysis){toast('Analyze a resume first','warn');return;}
+  const btn=$('jd-add-btn'); btn.disabled=true; btn.innerHTML='<div class="spin"></div> Comparing…';
+  try {
+    const res=await fetch(`${API}/api/compare`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resumeText:`Resume for: ${S.analysis.filename}`,jobRole:role,jobDescription:desc})});
+    const data=await res.json();
+    if(!res.ok){toast(data.message||'Failed','err');return;}
+    S.compJDs.push({role,co,desc,score:data.ats_score,result:data});
+    closeJDModal(); renderCompare(); toast('Comparison added!','ok');
+    $('jd-role').value=''; $('jd-co').value=''; $('jd-desc').value='';
+  } catch(e){toast('Server error: '+e.message,'err');}
+  finally{btn.disabled=false;btn.innerHTML='Run Comparison';}
+}
+function rmJD(i){S.compJDs.splice(i,1);renderCompare();}
+
+/* ── DASHBOARD ───────────────────────────────────── */
+async function loadDash() {
+  try {
+    const [sr,hr] = await Promise.all([fetch(`${API}/api/stats`),fetch(`${API}/api/history`)]);
+    const stats=await sr.json(), hist=await hr.json();
+    if($('d-total')) $('d-total').textContent=stats.totalAnalyses||0;
+    if($('d-avg'))   $('d-avg').textContent=stats.averageScore?Math.round(stats.averageScore):'—';
+    if($('d-best'))  $('d-best').textContent=stats.bestScore||'—';
+    if($('d-exc'))   $('d-exc').textContent=stats.excellentCount||0;
+    const tb=$('hist-tb'); if(!tb) return;
+    if(!hist.length){
+      tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--tx3)">No analyses yet. Upload a resume to get started!</td></tr>';
+      return;
+    }
+    tb.innerHTML=hist.map(h=>`
+      <tr>
+        <td style="font-weight:500">${h.filename||'resume.pdf'}</td>
+        <td style="color:var(--tx2)">${h.jobRole||'—'}</td>
+        <td><span style="background:${sColor(h.atsScore||0)}22;color:${sColor(h.atsScore||0)};font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:700;padding:3px 9px;border-radius:40px">${h.atsScore||0}</span></td>
+        <td><span class="badge ${gClass(h.grade)}">${h.grade||'—'}</span></td>
+        <td style="color:var(--tx3);font-size:.76rem">${new Date(h.createdAt).toLocaleDateString()}</td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-s" onclick="loadHist(${h.id})">View</button>
+          <button class="btn btn-sm btn-d" onclick="delHist(${h.id})">✕</button>
+        </td>
+      </tr>`).join('');
+  } catch(e){ toast('Cannot reach server. Is Spring Boot running?','err'); }
+}
+async function loadHist(id) {
+  try {
+    const res=await fetch(`${API}/api/history/${id}`); const data=await res.json();
+    S.analysis=data; go('ats'); toast('Loaded: '+data.filename,'ok');
+  } catch{toast('Failed to load','err');}
+}
+async function delHist(id) {
+  if(!confirm('Delete this analysis?')) return;
+  await fetch(`${API}/api/history/${id}`,{method:'DELETE'});
+  toast('Deleted','info'); loadDash();
+}
+async function clearAll() {
+  if(!confirm('Clear ALL history from the database?')) return;
+  await fetch(`${API}/api/history`,{method:'DELETE'});
+  toast('History cleared','info'); loadDash();
+}
+
+/* ── DOWNLOAD REPORT ─────────────────────────────── */
+function dlReport() {
+  const a=S.analysis; if(!a){toast('Analyze a resume first!','warn');return;}
+  const r=a.result;
+  const txt=`RESUMEIQ — ANALYSIS REPORT
+============================
+Generated : ${new Date().toLocaleString()}
+File      : ${a.filename}
+Job Role  : ${a.jobRole||'N/A'}
+
+ATS SCORE  : ${r.ats_score}/100 (${r.grade})
+JOB MATCH  : ${r.job_match_percentage}%
+
+SUMMARY
+-------
+${r.summary}
+
+SECTION SCORES
+--------------
+Contact     : ${r.section_scores?.contact}%
+Summary     : ${r.section_scores?.summary_section}%
+Skills      : ${r.section_scores?.skills}%
+Experience  : ${r.section_scores?.experience}%
+Education   : ${r.section_scores?.education}%
+
+KEYWORDS FOUND
+--------------
+${(r.keywords_found||[]).join(', ')}
+
+KEYWORDS MISSING
+----------------
+${(r.keywords_missing||[]).join(', ')}
+
+STRENGTHS
+---------
+${(r.strengths||[]).map((s,i)=>`${i+1}. ${s}`).join('\n')}
+
+QUICK WINS
+----------
+${(r.quick_wins||[]).map((w,i)=>`${i+1}. ${w}`).join('\n')}
+
+IMPROVEMENT TIPS
+----------------
+${Object.entries(r.tips||{}).flatMap(([c,tips])=>(tips||[]).map(t=>`[${c.toUpperCase()}][${t.priority}] ${t.title}: ${t.description}`)).join('\n')}`;
+  const el=document.createElement('a');
+  el.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  el.download=`resumeiq-report-${Date.now()}.txt`; el.click();
+  toast('Report downloaded!','ok');
+}
+
+/* ── INIT ────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  document.documentElement.setAttribute('data-theme', S.theme);
+  document.getElementById('themeBtn').textContent = S.theme==='dark'?'☀️':'🌙';
+  document.querySelectorAll('.nl[data-p]').forEach(l => l.addEventListener('click', ()=>go(l.dataset.p)));
+  initUpload();
+  go('home');
+  document.getElementById('jd-modal').addEventListener('click', e=>{ if(e.target.id==='jd-modal') closeJDModal(); });
+});
+</script>
+</body>
+</html>
